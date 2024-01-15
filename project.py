@@ -16,6 +16,8 @@ from ucc_sprite import Sprite
 WIDTH = 640
 HEIGHT = 640
 BACKGROUND_COLOR = "black"
+TIME = 900
+
 
 #-=-=-=-=-(Bullet configure)-=-=-=-=-
 #Controls the starting speed of the bullet
@@ -24,6 +26,9 @@ bullet_speed = 4
 #Control the spawn location of the bullet
 x_r = 0
 y_r = random.randint(100, 200)
+
+time1 = 900
+time2 = 60
 
 #-=-=-=-=-(Player configure)-=-=-=-=-
 #Controls the starting speed of the player
@@ -59,9 +64,25 @@ player2_image = pygame.transform.rotozoom(player2_image, 0, 0.80)
 
 #Bullet Images
 bullet1_image = pygame.image.load("Bullet1.png")
-bullet1_image = pygame.transform.rotozoom(bullet1_image, 90, 1.8)
-bullet2_image = pygame.image.load("Bullet1.png")
-bullet2_image = pygame.transform.rotozoom(bullet2_image, 90, 1.8)
+bullet1_image = pygame.transform.rotozoom(bullet1_image, 90, 0.9)
+
+#Hp Bar Images
+Bar1_image = pygame.image.load("Bar1.png")
+Bar1_image = pygame.transform.rotozoom(Bar1_image, 0, 0.8)
+Bar2_image = pygame.image.load("Bar2.png")
+Bar2_image = pygame.transform.rotozoom(Bar2_image, 0, 0.8)
+Bar3_image = pygame.image.load("Bar3.png")
+Bar3_image = pygame.transform.rotozoom(Bar3_image, 0, 0.8)
+Bar4_image = pygame.image.load("Bar4.png")
+Bar4_image = pygame.transform.rotozoom(Bar4_image, 0, 0.8)
+Bar5_image = pygame.image.load("Bar5.png")
+Bar5_image = pygame.transform.rotozoom(Bar5_image, 0, 0.8)
+Bar6_image = pygame.image.load("Bar6.png")
+Bar6_image = pygame.transform.rotozoom(Bar6_image, 0, 0.8)
+
+#Warning Image
+Warning_image = pygame.image.load("Warning.png")
+Warning_image = pygame.transform.rotozoom(Warning_image, 0, 1)
 #-=-=-=-=-=-(Create Sprites)-=-=-=-=-=-
 
 #Player Sprite.
@@ -71,9 +92,18 @@ player.add(all_sprites)
 player.image_num = 1
 player.count = 0
 
+#HP Sprite
+HP_bar = Sprite(Bar1_image)
+HP_bar.center = (WIDTH / 2, 595)
+HP_bar.add(all_sprites)
+HP_bar.hp_num = 1
+
 #Create a timer for the countdown clock
 SPAWNCLOCK = pygame.event.custom_type()
-pygame.time.set_timer(SPAWNCLOCK, 900)
+pygame.time.set_timer(SPAWNCLOCK, time1)
+
+#WARNING = pygame.event.custon_type()
+#pygame.time.set_timer(WARNING, time2)
 
 ### DEFINE HELPER FUNCTIONS
 
@@ -84,14 +114,21 @@ running = True
 while running:
     # Set the frame rate to 60 frames per second
     clock.tick(60)
-
+    
     for event in pygame.event.get():
         # Check if the quit (X) button was clicked
         if event.type == QUIT:
             running = False
 
         ### MANAGE OTHER EVENTS SINCE THE LAST FRAME
+            
+            
+        #-=-=-=-(Warning Attack)-=-=-=-
+        #if event.type == WARNING:
+            
         
+        
+        #-=-=-=-(Tracking Bullet)-=-=-=-
         if event.type == SPAWNCLOCK:
             
             y_r = random.randint(250, 500)
@@ -105,31 +142,52 @@ while running:
             bullet.count = 0
             bullet.image_num = 1
 
-            
-            if bullet.alive():
-                bullet.count += 1
-            #Controls how fast the images change.
-                if bullet.count >= 20:
-                    player.count = 0
-                    #If player num is == 1 then player2_image will show.
-                    if bullet.image_num == 1:
-                        bullet.image = bullet2_image
-                        bullet.image_num = 2
-                    #Else the player1_image will be shown.
-                    else:
-                        bullet.image = bullet1_image
-                        bullet.image_num = 1
-
     ### MANAGE GAME STATE FRAME-BY-FRAME
     
-    
+    #-=-=-=-=-(HP BAR)-=-=-=-=-
     for bullet in bullets:
     #If the bullet goes off the screen, wrap around to the other side of the screen
         if bullet.left > WIDTH:
             bullet.kill()
         if bullet.right < 0:
             bullet.kill()
+        if bullet.top < 255:
+            bullet.kill()
+        if bullet.bottom > 550:
+            bullet.kill()
+            
+        if pygame.sprite.collide_mask(player, bullet):
+            HP_bar.hp_num += 1
+            bullet.kill()
     
+        if HP_bar.hp_num == 1:
+            HP_bar.image = Bar1_image
+            
+        elif HP_bar.hp_num == 2:
+            HP_bar.kill()
+            HP_bar.image = Bar2_image
+            HP_bar.add(all_sprites)
+            
+        elif HP_bar.hp_num == 3:
+            HP_bar.kill()
+            HP_bar.image = Bar3_image
+            HP_bar.add(all_sprites)
+        
+        elif HP_bar.hp_num == 4:
+            HP_bar.kill()
+            HP_bar.image = Bar4_image
+            HP_bar.add(all_sprites)
+        
+        elif HP_bar.hp_num == 5:
+            HP_bar.kill()
+            HP_bar.image = Bar5_image
+            HP_bar.add(all_sprites)
+    
+        elif HP_bar.hp_num == 6:
+            HP_bar.kill()
+            HP_bar.image = Bar6_image
+            HP_bar.add(all_sprites)
+            
     #-=-=-=-=-=-(Player Movement)-=-=-=-=-=-
     
     #If the player is alive then.
