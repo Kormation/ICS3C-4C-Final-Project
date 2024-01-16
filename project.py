@@ -16,19 +16,22 @@ from ucc_sprite import Sprite
 WIDTH = 640
 HEIGHT = 640
 BACKGROUND_COLOR = "black"
-TIME = 900
-
+START_TIME = 60
+FONT_COLOR = "white"
 
 #-=-=-=-=-(Bullet configure)-=-=-=-=-
 #Controls the starting speed of the bullet
 bullet_speed = 4
+
+#Controls the speed of the warning bullet
+warning_bullet_speed = 5
 
 #Control the spawn location of the bullet
 x_r = 0
 y_r = random.randint(100, 200)
 
 time1 = 900
-time2 = 60
+time2 = 1000
 
 #-=-=-=-=-(Player configure)-=-=-=-=-
 #Controls the starting speed of the player
@@ -98,15 +101,28 @@ HP_bar.center = (WIDTH / 2, 595)
 HP_bar.add(all_sprites)
 HP_bar.hp_num = 1
 
+#Warning Sprite
+warning = Sprite(Warning_image)
+warning.counter = 0
+
+#Timer
+baloo_font_small = pygame.font.Font("Baloo.ttf", 36)
+time_left = START_TIME
+timer = Sprite(baloo_font_small.render(f"{time_left}", True, FONT_COLOR))
+timer.center = (590, 30)
+timer.add(all_sprites)
+
+
 #Create a timer for the countdown clock
+COUNTDOWN = pygame.event.custom_type()
+
 SPAWNCLOCK = pygame.event.custom_type()
 pygame.time.set_timer(SPAWNCLOCK, time1)
 
-#WARNING = pygame.event.custon_type()
-#pygame.time.set_timer(WARNING, time2)
+WARNING = pygame.event.custom_type()
+pygame.time.set_timer(WARNING, time2)
 
 ### DEFINE HELPER FUNCTIONS
-
 
 
 # Main Loop
@@ -121,13 +137,34 @@ while running:
             running = False
 
         ### MANAGE OTHER EVENTS SINCE THE LAST FRAME
+        elif event.type == COUNTDOWN:
+            time_left -= 1
+            timer.image = baloo_font_small.render(f"{time_left}", True, FONT_COLOR)
+            timer.center = (2 * WIDTH / 3, 30)
             
+            #if time_left == 0:
             
         #-=-=-=-(Warning Attack)-=-=-=-
-        #if event.type == WARNING:
+        if event.type == WARNING:
+            warning_attack = random.randint(1, 3)
             
-        
-        
+            if warning_attack == 2:
+                y_r = random.randint(250, 500)
+                warning.center = (30, y_r)
+                warning.add(all_sprites)
+                warning_attack = 0
+                if warning_attack == 0:
+                    bullet = Sprite(bullet1_image)
+                    bullet.center = (0, y_r)
+                    bullet.direction = 360
+                    bullet.add(all_sprites, bullets)
+                    bullet.speed = (warning_bullet_speed)
+                    warning_bullet_speed += 0.3
+                    warning.counter = 0
+ 
+            else:
+                warning.kill()
+                        
         #-=-=-=-(Tracking Bullet)-=-=-=-
         if event.type == SPAWNCLOCK:
             
@@ -139,8 +176,7 @@ while running:
             bullet.direction = degrees(atan((y_r - player.centery) / (player.centerx - x_r)))
             bullet.add(all_sprites, bullets)
             bullet.speed = (bullet_speed)
-            bullet.count = 0
-            bullet.image_num = 1
+                
 
     ### MANAGE GAME STATE FRAME-BY-FRAME
     
@@ -151,9 +187,9 @@ while running:
             bullet.kill()
         if bullet.right < 0:
             bullet.kill()
-        if bullet.top < 255:
+        if bullet.top < 220:
             bullet.kill()
-        if bullet.bottom > 550:
+        if bullet.bottom > 555:
             bullet.kill()
             
         if pygame.sprite.collide_mask(player, bullet):
