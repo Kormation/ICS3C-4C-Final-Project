@@ -15,8 +15,9 @@ from ucc_sprite import Sprite
 ### SET UP GLOBAL CONSTANTS HERE
 WIDTH = 640
 HEIGHT = 640
+GAME_OVER_COLOR = "white"
 BACKGROUND_COLOR = "black"
-START_TIME = 60
+START_TIME = 10
 FONT_COLOR = "white"
 
 #-=-=-=-=-(Bullet configure)-=-=-=-=-
@@ -53,7 +54,7 @@ clock = pygame.time.Clock()
 
 # Group to hold all of the active sprites
 all_sprites = pygame.sprite.LayeredUpdates()
-bullets = pygame.sprite.LayeredUpdates()
+bullets = pygame.sprite.Group()
 
 ### SET UP YOUR GAME HERE
 
@@ -70,22 +71,35 @@ bullet1_image = pygame.image.load("Bullet1.png")
 bullet1_image = pygame.transform.rotozoom(bullet1_image, 90, 0.9)
 
 #Hp Bar Images
-Bar1_image = pygame.image.load("Bar1.png")
-Bar1_image = pygame.transform.rotozoom(Bar1_image, 0, 0.8)
-Bar2_image = pygame.image.load("Bar2.png")
-Bar2_image = pygame.transform.rotozoom(Bar2_image, 0, 0.8)
-Bar3_image = pygame.image.load("Bar3.png")
-Bar3_image = pygame.transform.rotozoom(Bar3_image, 0, 0.8)
-Bar4_image = pygame.image.load("Bar4.png")
-Bar4_image = pygame.transform.rotozoom(Bar4_image, 0, 0.8)
-Bar5_image = pygame.image.load("Bar5.png")
-Bar5_image = pygame.transform.rotozoom(Bar5_image, 0, 0.8)
-Bar6_image = pygame.image.load("Bar6.png")
-Bar6_image = pygame.transform.rotozoom(Bar6_image, 0, 0.8)
+bar1_image = pygame.image.load("Bar1.png")
+bar1_image = pygame.transform.rotozoom(bar1_image, 0, 0.8)
+bar2_image = pygame.image.load("Bar2.png")
+bar2_image = pygame.transform.rotozoom(bar2_image, 0, 0.8)
+bar3_image = pygame.image.load("Bar3.png")
+bar3_image = pygame.transform.rotozoom(bar3_image, 0, 0.8)
+bar4_image = pygame.image.load("Bar4.png")
+bar4_image = pygame.transform.rotozoom(bar4_image, 0, 0.8)
+bar5_image = pygame.image.load("Bar5.png")
+bar5_image = pygame.transform.rotozoom(bar5_image, 0, 0.8)
+bar6_image = pygame.image.load("Bar6.png")
+bar6_image = pygame.transform.rotozoom(bar6_image, 0, 0.8)
 
 #Warning Image
 Warning_image = pygame.image.load("Warning.png")
 Warning_image = pygame.transform.rotozoom(Warning_image, 0, 1)
+
+#Restart Image
+restart_image = pygame.image.load("Restart.png")
+restart_image = pygame.transform.rotozoom(restart_image, 0, 0.6)
+
+#Start Image
+start_image = pygame.image.load("Restart.png")
+start_image = pygame.transform.rotozoom(start_image, 0, 0.6)
+
+#Menu Image
+menu_image = pygame.image.load("Menu.png")
+menu_image = pygame.transform.rotozoom(menu_image, 0, 0.6)
+
 #-=-=-=-=-=-(Create Sprites)-=-=-=-=-=-
 
 #Player Sprite.
@@ -96,7 +110,7 @@ player.image_num = 1
 player.count = 0
 
 #HP Sprite
-HP_bar = Sprite(Bar1_image)
+HP_bar = Sprite(bar1_image)
 HP_bar.center = (WIDTH / 2, 595)
 HP_bar.add(all_sprites)
 HP_bar.hp_num = 1
@@ -112,15 +126,38 @@ timer = Sprite(baloo_font_small.render(f"{time_left}", True, FONT_COLOR))
 timer.center = (590, 30)
 timer.add(all_sprites)
 
+#Game Over
+baloo_font_large = pygame.font.Font("Baloo.ttf", 72)
+game_over = Sprite(baloo_font_large.render("YOU ARE DEAD", True, GAME_OVER_COLOR))
+game_over.center = (WIDTH / 2, HEIGHT / 2)
 
-#Create a timer for the countdown clock
-COUNTDOWN = pygame.event.custom_type()
+#You Win
+baloo_font_large = pygame.font.Font("Baloo.ttf", 72)
+win = Sprite(baloo_font_large.render("YOU WIN", True, GAME_OVER_COLOR))
+win.center = (WIDTH / 2, HEIGHT / 2)
 
+#Buttons
+restart_button = Sprite(restart_image)
+restart_button.center = (185, 405)
+start_button = Sprite(start_image)
+start_button.center = (100, 595)
+menu_button = Sprite(menu_image)
+menu_button.center = (445, 405)
+
+#-=-=-=-=-(Sounds)-=-=-=-=-=-
+win_sound = pygame.mixer.Sound("win.mp3")
+warning_sound = pygame.mixer.Sound("warning.mp3")
+lose_sound = pygame.mixer.Sound("lose.mp3")
+
+#Custom 
 SPAWNCLOCK = pygame.event.custom_type()
 pygame.time.set_timer(SPAWNCLOCK, time1)
 
 WARNING = pygame.event.custom_type()
 pygame.time.set_timer(WARNING, time2)
+
+COUNTDOWN = pygame.event.custom_type()
+pygame.time.set_timer(COUNTDOWN, 1000, time_left)
 
 ### DEFINE HELPER FUNCTIONS
 
@@ -140,12 +177,53 @@ while running:
         elif event.type == COUNTDOWN:
             time_left -= 1
             timer.image = baloo_font_small.render(f"{time_left}", True, FONT_COLOR)
-            timer.center = (2 * WIDTH / 3, 30)
+            timer.center = (590, 30)
             
-            #if time_left == 0:
+            if HP_bar.hp_num >= 6:
+                if HP_bar.hp_num == 6:
+                    lose_sound.play(1)
+                for sprites in all_sprites:
+                    timer.kill()
+                    sprites.kill()
+                    player.kill()
+                    bullet.kill()
+                game_over.add(all_sprites)
+                restart_button.add(all_sprites)
+                menu_button.add(all_sprites)
             
+            elif time_left == 0:
+                win_sound.play(1)
+                for sprites in all_sprites:
+                    timer.kill()
+                    sprites.kill()
+                    player.kill()
+                    bullet.kill()
+                win.add(all_sprites)
+                restart_button.add(all_sprites)
+                menu_button.add(all_sprites)
+        
+        #elif event.type == MOUSEBUTTONDOWN:
+            #if menu_button.mask_contains_point(event.pos):
+        
+        elif event.type == MOUSEBUTTONDOWN:
+            if restart_button.mask_contains_point(event.pos) and restart_button.alive():
+                time_left = START_TIME
+                timer.image = baloo_font_small.render(f"{time_left}", True, FONT_COLOR)
+                timer.center = (590, 30)
+                timer.add(all_sprites)
+                restart_button.kill()
+                menu_button.kill()
+                HP_bar.hp_num = 1
+                game_over.kill()
+                win.kill()
+                player.add(all_sprites)
+                HP_bar.add(all_sprites)
+                pygame.time.set_timer(COUNTDOWN, 1000, time_left)
+                
+
+
         #-=-=-=-(Warning Attack)-=-=-=-
-        if event.type == WARNING:
+        if event.type == WARNING and player.alive():
             warning_attack = random.randint(1, 3)
             
             if warning_attack == 2:
@@ -153,6 +231,7 @@ while running:
                 warning.center = (30, y_r)
                 warning.add(all_sprites)
                 warning_attack = 0
+                warning_sound.play(2)
                 if warning_attack == 0:
                     bullet = Sprite(bullet1_image)
                     bullet.center = (0, y_r)
@@ -166,7 +245,7 @@ while running:
                 warning.kill()
                         
         #-=-=-=-(Tracking Bullet)-=-=-=-
-        if event.type == SPAWNCLOCK:
+        if event.type == SPAWNCLOCK and player.alive():
             
             y_r = random.randint(250, 500)
             bullet_speed += 0.01
@@ -197,31 +276,31 @@ while running:
             bullet.kill()
     
         if HP_bar.hp_num == 1:
-            HP_bar.image = Bar1_image
+            HP_bar.image = bar1_image
             
         elif HP_bar.hp_num == 2:
             HP_bar.kill()
-            HP_bar.image = Bar2_image
+            HP_bar.image = bar2_image
             HP_bar.add(all_sprites)
             
         elif HP_bar.hp_num == 3:
             HP_bar.kill()
-            HP_bar.image = Bar3_image
+            HP_bar.image = bar3_image
             HP_bar.add(all_sprites)
         
         elif HP_bar.hp_num == 4:
             HP_bar.kill()
-            HP_bar.image = Bar4_image
+            HP_bar.image = bar4_image
             HP_bar.add(all_sprites)
         
         elif HP_bar.hp_num == 5:
             HP_bar.kill()
-            HP_bar.image = Bar5_image
+            HP_bar.image = bar5_image
             HP_bar.add(all_sprites)
     
         elif HP_bar.hp_num == 6:
             HP_bar.kill()
-            HP_bar.image = Bar6_image
+            HP_bar.image = bar6_image
             HP_bar.add(all_sprites)
             
     #-=-=-=-=-=-(Player Movement)-=-=-=-=-=-
@@ -262,9 +341,10 @@ while running:
     screen.fill(BACKGROUND_COLOR)
     
     #-=-=-=-=-=-=-(Screen Design)-=-=-=-=-=-=-
-    pygame.draw.rect(screen, (255, 255, 255), (0, 220, WIDTH, 5), 0)
-    pygame.draw.rect(screen, (255, 255, 255), (0, 550, WIDTH, 5), 0)
+    border1 = pygame.draw.rect(screen, (255, 255, 255), (0, 220, WIDTH, 5), 0)
+    border2 = pygame.draw.rect(screen, (255, 255, 255), (0, 550, WIDTH, 5), 0)
 
+    
     # Redraw the sprites
     all_sprites.draw(screen)
 
