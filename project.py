@@ -17,7 +17,7 @@ WIDTH = 640
 HEIGHT = 640
 GAME_OVER_COLOR = "white"
 BACKGROUND_COLOR = "black"
-START_TIME = 10
+START_TIME = 75
 FONT_COLOR = "white"
 
 #-=-=-=-=-(Bullet configure)-=-=-=-=-
@@ -31,8 +31,8 @@ warning_bullet_speed = 5
 x_r = 0
 y_r = random.randint(100, 200)
 
-time1 = 900
-time2 = 1000
+time1 = 500
+time2 = 800
 
 #-=-=-=-=-(Player configure)-=-=-=-=-
 #Controls the starting speed of the player
@@ -70,6 +70,9 @@ player2_image = pygame.transform.rotozoom(player2_image, 0, 0.80)
 bullet1_image = pygame.image.load("Bullet1.png")
 bullet1_image = pygame.transform.rotozoom(bullet1_image, 90, 0.9)
 
+bullet2_image = pygame.image.load("Bullet1.png")
+bullet2_image = pygame.transform.rotozoom(bullet2_image, 90, 3)
+
 #Hp Bar Images
 bar1_image = pygame.image.load("Bar1.png")
 bar1_image = pygame.transform.rotozoom(bar1_image, 0, 0.8)
@@ -87,6 +90,10 @@ bar6_image = pygame.transform.rotozoom(bar6_image, 0, 0.8)
 #Warning Image
 Warning_image = pygame.image.load("Warning.png")
 Warning_image = pygame.transform.rotozoom(Warning_image, 0, 1)
+
+#Warning Image
+Warning2_image = pygame.image.load("Warning.png")
+Warning2_image = pygame.transform.rotozoom(Warning_image, 0, 2)
 
 #Restart Image
 restart_image = pygame.image.load("Restart.png")
@@ -119,6 +126,9 @@ HP_bar.hp_num = 1
 warning = Sprite(Warning_image)
 warning.counter = 0
 
+#Big Warning Sprite
+warning_big = Sprite(Warning2_image)
+
 #Timer
 baloo_font_small = pygame.font.Font("Baloo.ttf", 36)
 time_left = START_TIME
@@ -149,7 +159,11 @@ win_sound = pygame.mixer.Sound("win.mp3")
 warning_sound = pygame.mixer.Sound("warning.mp3")
 lose_sound = pygame.mixer.Sound("lose.mp3")
 
-#Custom 
+#-=-=-=-=-(Bg Music)-=-=-=-=-
+pygame.mixer.music.load("bg_music.mp3")
+pygame.mixer.music.play()
+
+#-=-=-=-=-(Custom Events)-=-=-=-=-
 SPAWNCLOCK = pygame.event.custom_type()
 pygame.time.set_timer(SPAWNCLOCK, time1)
 
@@ -167,7 +181,7 @@ running = True
 while running:
     # Set the frame rate to 60 frames per second
     clock.tick(60)
-    
+        
     for event in pygame.event.get():
         # Check if the quit (X) button was clicked
         if event.type == QUIT:
@@ -180,8 +194,6 @@ while running:
             timer.center = (590, 30)
             
             if HP_bar.hp_num >= 6:
-                if HP_bar.hp_num == 6:
-                    lose_sound.play(1)
                 for sprites in all_sprites:
                     timer.kill()
                     sprites.kill()
@@ -190,9 +202,10 @@ while running:
                 game_over.add(all_sprites)
                 restart_button.add(all_sprites)
                 menu_button.add(all_sprites)
+                pygame.mixer.music.stop()
             
             elif time_left == 0:
-                win_sound.play(1)
+                win_sound.play()
                 for sprites in all_sprites:
                     timer.kill()
                     sprites.kill()
@@ -201,9 +214,7 @@ while running:
                 win.add(all_sprites)
                 restart_button.add(all_sprites)
                 menu_button.add(all_sprites)
-        
-        #elif event.type == MOUSEBUTTONDOWN:
-            #if menu_button.mask_contains_point(event.pos):
+                pygame.mixer.music.stop()
         
         elif event.type == MOUSEBUTTONDOWN:
             if restart_button.mask_contains_point(event.pos) and restart_button.alive():
@@ -213,20 +224,41 @@ while running:
                 timer.add(all_sprites)
                 restart_button.kill()
                 menu_button.kill()
-                HP_bar.hp_num = 1
                 game_over.kill()
                 win.kill()
                 player.add(all_sprites)
                 HP_bar.add(all_sprites)
                 pygame.time.set_timer(COUNTDOWN, 1000, time_left)
-                
-
-
+                pygame.mixer.music.rewind()
+                pygame.mixer.music.play()
+                HP_bar.hp_num = 1
+                bullet_speed = 4
+                plr_speed = 2
+                warning_bullet_speed = 5
+                HP_bar.image = bar1_image
+                HP_bar.add(all_sprites)
+                plr_x = WIDTH / 2
+                plr_y = 400
+        
+        #-=-=-=-(Starting Attack)-=-=-=-
+        if time_left == 70 or time_left == 40 or time_left == 10:
+            warning_big.center = (50, 400)
+            warning_big.add(all_sprites)
+            warning_sound.play()
+        if time_left == 69 or time_left == 39 or time_left == 9:
+            warning_big.kill()
+            bullet = Sprite(bullet2_image)
+            bullet.center = (0, 400)
+            bullet.direction = 360
+            bullet.add(all_sprites, bullets)
+            bullet.speed = (warning_bullet_speed)
+            warning_bullet_speed += 0.3
+            
         #-=-=-=-(Warning Attack)-=-=-=-
         if event.type == WARNING and player.alive():
             warning_attack = random.randint(1, 3)
             
-            if warning_attack == 2:
+            if warning_attack == 2 and time_left <= 68:
                 y_r = random.randint(250, 500)
                 warning.center = (30, y_r)
                 warning.add(all_sprites)
@@ -247,15 +279,23 @@ while running:
         #-=-=-=-(Tracking Bullet)-=-=-=-
         if event.type == SPAWNCLOCK and player.alive():
             
-            y_r = random.randint(250, 500)
-            bullet_speed += 0.01
-            plr_speed += 0.02
-            bullet = Sprite(bullet1_image)
-            bullet.center = (0, y_r)
-            bullet.direction = degrees(atan((y_r - player.centery) / (player.centerx - x_r)))
-            bullet.add(all_sprites, bullets)
-            bullet.speed = (bullet_speed)
-                
+            if time_left <= 68:
+                y_r = random.randint(250, 500)
+                bullet_speed += 0.01
+                plr_speed += 0.01
+                bullet = Sprite(bullet1_image)
+                bullet.center = (0, y_r)
+                bullet.direction = degrees(atan((y_r - player.centery) / (player.centerx - x_r)))
+                bullet.add(all_sprites, bullets)
+                bullet.speed = (bullet_speed)
+                if time_left == 50:
+                    bullet_speed += 0.2
+                    plr_speed += 0.2
+                    if time_left == 30:
+                        bullet_speed += 0.2
+                        plr_speed += 0.2
+                        warning_bullet_speed += 0.5
+
 
     ### MANAGE GAME STATE FRAME-BY-FRAME
     
@@ -270,13 +310,14 @@ while running:
             bullet.kill()
         if bullet.bottom > 555:
             bullet.kill()
-            
+        
         if pygame.sprite.collide_mask(player, bullet):
             HP_bar.hp_num += 1
             bullet.kill()
     
-        if HP_bar.hp_num == 1:
+        if HP_bar.hp_num == 1 or time_left == 75:
             HP_bar.image = bar1_image
+            HP_bar.add(all_sprites)
             
         elif HP_bar.hp_num == 2:
             HP_bar.kill()
