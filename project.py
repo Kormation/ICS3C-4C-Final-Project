@@ -107,6 +107,14 @@ start_image = pygame.transform.rotozoom(start_image, 0, 0.6)
 menu_image = pygame.image.load("Menu.png")
 menu_image = pygame.transform.rotozoom(menu_image, 0, 0.6)
 
+#Ready
+ready_image = pygame.image.load("Ready.png")
+ready_image = pygame.transform.rotozoom(ready_image, 0, 0.8)
+
+#Enemy
+enemy_image = pygame.image.load("Enemy1.png")
+enemy_image = pygame.transform.rotozoom(enemy_image, 0, 0.9)
+
 #-=-=-=-=-=-(Create Sprites)-=-=-=-=-=-
 
 #Player Sprite.
@@ -154,6 +162,16 @@ start_button.center = (100, 595)
 menu_button = Sprite(menu_image)
 menu_button.center = (445, 405)
 
+#Ready
+ready = Sprite(ready_image)
+ready.center = WIDTH / 2 + 150, 115
+ready.add(all_sprites)
+
+#Enemy
+enemy = Sprite(enemy_image)
+enemy.center = WIDTH / 2, 145
+enemy.add(all_sprites)
+
 #-=-=-=-=-(Sounds)-=-=-=-=-=-
 win_sound = pygame.mixer.Sound("win.mp3")
 warning_sound = pygame.mixer.Sound("warning.mp3")
@@ -199,10 +217,12 @@ while running:
                     sprites.kill()
                     player.kill()
                     bullet.kill()
+                    enemy.kill()
                 game_over.add(all_sprites)
                 restart_button.add(all_sprites)
                 menu_button.add(all_sprites)
                 pygame.mixer.music.stop()
+                pygame.time.set_timer(COUNTDOWN, 0)
             
             elif time_left == 0:
                 win_sound.play()
@@ -211,10 +231,12 @@ while running:
                     sprites.kill()
                     player.kill()
                     bullet.kill()
+                    enemy.kill
                 win.add(all_sprites)
                 restart_button.add(all_sprites)
                 menu_button.add(all_sprites)
                 pygame.mixer.music.stop()
+                pygame.time.set_timer(COUNTDOWN, 0)
         
         elif event.type == MOUSEBUTTONDOWN:
             if restart_button.mask_contains_point(event.pos) and restart_button.alive():
@@ -228,6 +250,8 @@ while running:
                 win.kill()
                 player.add(all_sprites)
                 HP_bar.add(all_sprites)
+                enemy.add(all_sprites)
+                ready.add(all_sprites)
                 pygame.time.set_timer(COUNTDOWN, 1000, time_left)
                 pygame.mixer.music.rewind()
                 pygame.mixer.music.play()
@@ -237,11 +261,12 @@ while running:
                 warning_bullet_speed = 5
                 HP_bar.image = bar1_image
                 HP_bar.add(all_sprites)
-                plr_x = WIDTH / 2
-                plr_y = 400
+                player.x = WIDTH / 2
+                player.y = 400 - 25
         
         #-=-=-=-(Starting Attack)-=-=-=-
         if time_left == 70 or time_left == 40 or time_left == 10:
+            ready.kill()
             warning_big.center = (50, 400)
             warning_big.add(all_sprites)
             warning_sound.play()
