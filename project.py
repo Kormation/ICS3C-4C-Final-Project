@@ -110,6 +110,10 @@ start_image = pygame.transform.rotozoom(start_image, 0, 0.6)
 menu_image = pygame.image.load("Menu.png")
 menu_image = pygame.transform.rotozoom(menu_image, 0, 0.6)
 
+#Exit Image
+exit_image = pygame.image.load("Exit.png")
+exit_image = pygame.transform.rotozoom(exit_image, 0, 0.5)
+
 #Ready
 ready_image = pygame.image.load("Ready.png")
 ready_image = pygame.transform.rotozoom(ready_image, 0, 0.8)
@@ -117,6 +121,9 @@ ready_image = pygame.transform.rotozoom(ready_image, 0, 0.8)
 #Enemy
 enemy_image = pygame.image.load("Enemy1.png")
 enemy_image = pygame.transform.rotozoom(enemy_image, 0, 0.9)
+
+#Menu Screen
+menu_screen_image = pygame.image.load("Menu_screen.png")
 
 #-=-=-=-=-=-(Create Sprites)-=-=-=-=-=-
 
@@ -161,9 +168,15 @@ win.center = (WIDTH / 2, HEIGHT / 2)
 restart_button = Sprite(restart_image)
 restart_button.center = (185, 405)
 start_button = Sprite(start_image)
-start_button.center = (300, 400)
+start_button.center = (185, 200)
+exit_button = Sprite(exit_image)
+exit_button.center = (120, 300)
 menu_button = Sprite(menu_image)
 menu_button.center = (445, 405)
+
+
+#Menu Screen
+menu_screen = Sprite(menu_screen_image)
 
 #Ready
 ready = Sprite(ready_image)
@@ -214,14 +227,40 @@ while running:
             if event.type == QUIT:
                 running = False
             
-        
+            menu_screen.add(menu_sprites)
             start_button.add(menu_sprites)
+            exit_button.add(menu_sprites)
             
             if event.type == MOUSEBUTTONDOWN:
                 if start_button.mask_contains_point(event.pos) and start_button.alive():
                     game_state = ("game")
                     for sprites in menu_sprites:
                         sprites.kill()
+                    time_left = START_TIME
+                    timer.image = baloo_font_small.render(f"{time_left}", True, FONT_COLOR)
+                    timer.center = (590, 30)
+                    timer.add(game_sprites)
+                    player.add(game_sprites)
+                    HP_bar.add(game_sprites)
+                    enemy.add(game_sprites)
+                    ready.add(game_sprites)
+                    pygame.time.set_timer(COUNTDOWN, 1000, time_left)
+                    pygame.mixer.music.rewind()
+                    pygame.mixer.music.play()
+                    HP_bar.hp_num = 1
+                    bullet_speed = 4
+                    plr_speed = 2
+                    warning_bullet_speed = 5
+                    HP_bar.image = bar1_image
+                    HP_bar.add(game_sprites)
+                    player.x = WIDTH / 2
+                    player.y = 400 - 25
+                    
+            if event.type == MOUSEBUTTONDOWN:
+                if exit_button.mask_contains_point(event.pos) and exit_button.alive():
+                    running = 0
+                    
+
                     
                     
             #Update screen
@@ -249,11 +288,7 @@ while running:
                 
                 if HP_bar.hp_num >= 6:
                     for sprites in game_sprites:
-                        timer.kill()
                         sprites.kill()
-                        player.kill()
-                        bullet.kill()
-                        enemy.kill()
                     game_over.add(game_sprites)
                     restart_button.add(game_sprites)
                     menu_button.add(game_sprites)
@@ -263,11 +298,7 @@ while running:
                 elif time_left == 0:
                     win_sound.play()
                     for sprites in game_sprites:
-                        timer.kill()
                         sprites.kill()
-                        player.kill()
-                        bullet.kill()
-                        enemy.kill
                     win.add(game_sprites)
                     restart_button.add(game_sprites)
                     menu_button.add(game_sprites)
